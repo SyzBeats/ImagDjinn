@@ -5,6 +5,10 @@ const {
 } = require("./functions.storage");
 
 module.exports = {
+  /**
+   * @description settings will be opened to select the new output path and store it in the
+   * app data storage (currently default store)
+   */
   openSettingsModal: async (mainWindow) => {
     try {
       const dir = await dialog.showOpenDialog({
@@ -13,7 +17,6 @@ module.exports = {
 
       const newFilePath = dir.filePaths[0];
       await setOutputDirectory(newFilePath);
-      // set new path in system to persist data
 
       await mainWindow.webContents.send("settings:open", {
         directory: dir.filePaths[0],

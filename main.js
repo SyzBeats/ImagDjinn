@@ -183,6 +183,10 @@ async function reduceImageSize({ imagePaths, quality, dest }) {
 
 /** IPC EVENTS 
 --------------------*/
+
+/**
+ * @description get the directory to display it in the rendering process
+ */
 ipcMain.on("get:outPath", async () => {
   const outPath = await getOutputDirectory();
   const { directory } = outPath;
@@ -191,6 +195,10 @@ ipcMain.on("get:outPath", async () => {
   });
 });
 
+/**
+ * @description to enable image size reduction and output the images in the stored settings
+ * the output directory is received and passed along to the reducing function
+ */
 ipcMain.on("image:minimize", async (e, options) => {
   const output = await getOutputDirectory();
   const { directory } = output;
