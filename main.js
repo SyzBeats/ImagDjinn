@@ -6,8 +6,9 @@ const imagemin = require("imagemin");
 const slash = require("slash");
 const imageminMozjpeg = require("imagemin-mozjpeg");
 const { default: imageminPngquant } = require("imagemin-pngquant");
+const { openSettingsModal } = require("./inc/functions/functions.main");
 const { shell } = require("electron/common");
-
+const { getOutputDirectory } = require("./inc/functions/functions.storage");
 // set env
 process.env.NODE_ENV = "development";
 const isDevelopmentEnv = process.env.NODE_ENV !== "production" ? true : false;
@@ -18,15 +19,16 @@ const isWindows = process.platform === "win32";
 const isLinux = process.platform === "linux";
 let mainWindow;
 
-function createMainWindow() {
+async function createMainWindow() {
   mainWindow = new BrowserWindow({
     title: "ImagDjinn",
-    width: isDevelopmentEnv ? 800 : 500,
+    width: isDevelopmentEnv ? 1000 : 600,
     height: 800,
     icon: `${__dirname}\\assets\\Icon_256x256.png`,
     resizable: isDevelopmentEnv,
     webPreferences: {
       nodeIntegration: true,
+      enableRemoteModule: true,
     },
   });
 
@@ -64,6 +66,7 @@ const menu = [
         },
       ]
     : []),
+  // windows or linux
   ...(!isMac
     ? [
         {
@@ -77,9 +80,20 @@ const menu = [
         },
       ]
     : []),
+  // standard file menu
   {
     role: "fileMenu",
   },
+  {
+    label: "Config",
+    submenu: [
+      {
+        label: "set output path",
+        click: () => openSettingsModal(mainWindow),
+      },
+    ],
+  },
+  // only in Development
   ...(isDevelopmentEnv
     ? [
         {
@@ -129,12 +143,6 @@ app.on("activate", () => {
   }
 });
 
-/** IPC MAIN Event */
-ipcMain.on("image:minimize", (e, options) => {
-  options.dest = path.join(__dirname, "/output");
-  reduceImageSize(options);
-});
-
 /**
  * @description get the options that where selected in the renderer and build
  * the image based on the passed information
@@ -172,3 +180,20 @@ async function reduceImageSize({ imagePaths, quality, dest }) {
     return;
   }
 }
+
+/** IPC EVENTS 
+--------------------*/
+ipcMain.on("get:outPath", async () => {
+  const outPath = await getOutputDirectory();
+  const { directory } = outPath;
+  mainWindow.webContents.send("display:outputPath", {
+    directory,
+  });
+});
+
+ipcMain.on("image:minimize", async (e, options) => {
+  const output = await getOutputDirectory();
+  const { directory } = output;
+  options.dest = directory;
+  reduceImageSize(options);
+});

@@ -4,9 +4,8 @@
  * @author Simeon Zimmermann
  * @version 1.0
  */
-
 const path = require("path");
-const { ipcRenderer } = require("electron");
+const { ipcRenderer, remote } = require("electron");
 
 /** @type {HTMLFormElement} */
 const form = document.querySelector("#image-form");
@@ -17,10 +16,7 @@ const slider = document.querySelector("#slider");
 /** @type {HTMLElement} */
 const image = document.querySelector("#img");
 
-document.querySelector("#output-path").innerText = path.join(
-  __dirname,
-  "../../output",
-);
+ipcRenderer.send("get:outPath");
 
 /**
  * @description:
@@ -41,4 +37,20 @@ ipcRenderer.on("image:done", () => {
   M.toast({
     html: `Image resized to ${slider.value}% quality`,
   });
+});
+
+// get message from webContents to indicate that the rendering is finished
+ipcRenderer.on("settings:open", (event, args) => {
+  const { directory } = args;
+  M.toast({
+    html: `Path was set to ${directory}`,
+  });
+
+  document.querySelector("#output-path").innerText = directory;
+});
+
+// get message from webContents to indicate that the rendering is finished
+ipcRenderer.on("display:outputPath", (event, args) => {
+  const { directory } = args;
+  document.querySelector("#output-path").innerText = directory;
 });
