@@ -18,26 +18,27 @@ const slider = document.querySelector("#slider");
 const image = document.querySelector("#img");
 
 document.querySelector("#output-path").innerText = path.join(
-	__dirname,
-	"../../output"
+  __dirname,
+  "../../output",
 );
 
-// onsubmit
+/**
+ * @description:
+ */
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
 
-form.addEventListener("submit", e => {
-	e.preventDefault();
+  /** @type {string[]} */
+  const imagePaths = Object.values(image.files).map((key) => key.path);
 
-	/** @type {string[]} */
-	const imagePaths = Object.values(image.files).map(key => key.path);
+  const quality = slider.value;
 
-	const quality = slider.value;
-
-	ipcRenderer.send("image:minimize", { imagePaths, quality });
+  ipcRenderer.send("image:minimize", { imagePaths, quality });
 });
 
-// get message from webContents
+// get message from webContents to indicate that the rendering is finished
 ipcRenderer.on("image:done", () => {
-	M.toast({
-		html: `Image resized to ${slider.value}% quality`,
-	});
+  M.toast({
+    html: `Image resized to ${slider.value}% quality`,
+  });
 });
